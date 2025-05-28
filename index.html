@@ -1,5 +1,15 @@
-hi all
-adgfdffghkhjkj
-this is my jenkins files
-my file is emty
-all the 
+pipeline {
+  agent any
+  stages {
+    stage('Deploy') {
+      steps {
+        sh '''
+          git clone https://your-repo.git
+          cd your-repo
+          npm install
+          pm2 start app.js
+        '''
+      }
+    }
+  }
+}
