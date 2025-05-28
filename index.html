@@ -13,3 +13,61 @@ pipeline {
     }
   }
 }
+
+
+
+
+
+
+pipeline {
+  agent any
+
+  environment {
+    DB_HOST = credentials('rds-db-host')  // From Jenkins credentials
+    DB_USER = credentials('rds-db-user')
+    DB_PASS = credentials('rds-db-pass')
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        git 'https://github.com/your-org/your-repo.git'
+      }
+    }
+
+    stage('Build') {
+      steps {
+        sh './gradlew build'  // or mvn clean install, npm build, etc.
+      }
+    }
+
+    stage('Test') {
+      steps {
+        sh './gradlew test'
+      }
+    }
+
+    stage('DB Migration') {
+      steps {
+        sh """
+          flyway -url=jdbc:mysql://${DB_HOST}/yourdb \
+                 -user=${DB_USER} \
+                 -password=${DB_PASS} \
+                 migrate
+        """
+      }
+    }
+
+    stage('Deploy') {
+      steps {
+        sh './scripts/deploy.sh'
+      }
+    }
+
+    stage('Post-Deploy Tests') {
+      steps {
+        sh './scripts/smoke-test.sh'
+      }
+    }
+  }
+}
